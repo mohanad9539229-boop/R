@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مفاجأة برمجية خاصة 💖</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #050505;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        /* واجهة الدخول المخصصة والمجهزة لـ Vercel والهواتف */
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, #150510 0%, #050505 100%);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 1.2s ease-in-out, visibility 1.2s;
+        }
+        .start-btn {
+            padding: 20px 60px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(45deg, #ff4bb4, #ff2a6d);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(255, 42, 109, 0.6);
+            transition: transform 0.3s, box-shadow 0.3s, background 0.5s;
+            outline: none;
+            z-index: 11;
+        }
+        .start-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 0 50px rgba(255, 42, 109, 1);
+        }
+        .start-btn:active {
+            transform: scale(0.95);
+        }
+        /* حاوية حرف R والنص السفلي لتظهر بنعومة */
+        #center-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #letter-r {
+            font-family: 'Georgia', serif;
+            font-size: 90px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 20px #ff2a6d, 0 0 40px #ff4bb4, 0 0 60px #ff2a6d;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 2.5s ease-in-out, transform 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 10px;
+        }
+        /* حركة النبض لحرف R لجعله حياً ومبهراً */
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 20px #ff2a6d, 0 0 40px #ff4bb4; }
+            50% { transform: scale(1.15); text-shadow: 0 0 30px #ff2a6d, 0 0 60px #ff4bb4, 0 0 80px #ff2a6d; }
+            100% { transform: scale(1); text-shadow: 0 0 20px #ff2a6d, 0 0 40px #ff4bb4; }
+        }
+        .pulsing {
+            animation: pulse 1.8s infinite ease-in-out;
+        }
+        #love-text {
+            color: #ff4bb4;
+            font-size: 26px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            text-shadow: 0 0 15px rgba(255, 75, 180, 0.8);
+            margin-top: 180px; /* ندفعه للأسفل ليكون تحت تجويف القلب */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- شاشة البداية للتفاعل وتحتوي فقط على "اضغطي" لتشغيل الصوت دون قيود المتصفح -->
+    <div id="overlay">
+        <button class="start-btn" onclick="startExperience()">اضغطي 💖</button>
+    </div>
+
+    <!-- حاوية الحرف والنص في وسط القلب تماماً -->
+    <div id="center-content">
+        <div id="letter-r">R</div>
+        <div id="love-text">I Love You</div>
+    </div>
+
+    <!-- كرت الرسم ثنائي الأبعاد -->
+    <canvas id="canvas"></canvas>
+    
+    <!-- صوت الخلفية من الرابط الخاص بك -->
+    <audio id="bg-music" src="https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvYjQ4MjhiM2EtZDg1Yi00N2M5LWI3OWItZDA0OTEyZTRlMGRkLm1wMw" loop></audio>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const audio = document.getElementById('bg-music');
+        const overlay = document.getElementById('overlay');
+        const letterR = document.getElementById('letter-r');
+        const loveText = document.getElementById('love-text');
+
+        let animationStarted = false;
+        let currentStep = 0;
+        const maxSteps = 600;
+        let points = [];
+
+        // تعديل الأبعاد لتناسب الشاشات المختلفة (الهواتف والكمبيوتر) بشكل متجاوب
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            if (animationStarted && currentStep >= maxSteps) {
+                drawFullHeart();
+            }
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // بدء التجربة عند ضغط الزر
+        function startExperience() {
+            // تلاشي شاشة البداية بحركة ناعمة
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.visibility = 'hidden';
+            }, 1200);
+
+            // تشغيل الأغنية الخلفية التي وفرتها
+            audio.play().catch(error => {
+                console.log("خطأ في تشغيل الصوت تلقائياً:", error);
+            });
+
+            animationStarted = true;
+            animateHeart();
+        }
+
+        // حساب نقاط القلب بناءً على معادلات الرسم الرياضية
+        function getHeartPoint(step) {
+            let t = step / 20;
+            // معادلات منحنى القلب الوسيطية المأخوذة من الكود الخاص بك
+            let x = 16 * Math.pow(Math.sin(t), 3);
+            let y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+            
+            // تحديد الحجم المناسب للقلب حسب حجم الشاشة لضمان عدم خروجه من الحدود
+            let scale = Math.min(canvas.width, canvas.height) / 45;
+            
+            // تحويل نقطة الأصل (0,0) لتصبح في منتصف الشاشة تماماً
+            let cx = canvas.width / 2 + x * scale;
+            let cy = canvas.height / 2 - y * scale; // عكس إشارة Y لأن إحداثيات شاشة الويب تبدأ من الأعلى للاسفل عكس التيرتل
+            
+            return { x: cx, y: cy };
+        }
+
+        // تحريك ورسم القلب خطوة بخطوة مع الكلمات
+        function animateHeart() {
+            if (!animationStarted) return;
+
+            // نرسم نقطتين في كل إطار (Frame) لإعطاء سرعة مناسبة وشبيهة لسرعة الصفر بالتيرتل
+            for (let k = 0; k < 2; k++) {
+                if (currentStep >= maxSteps) {
+                    // عند اكتمال رسم القلب بالكامل:
+                    showInsideContent();
+                    startFloatingParticles(); // تشغيل تأثير الجسيمات الطائرة اللامعة
+                    return;
+                }
+
+                let p = getHeartPoint(currentStep);
+                points.push(p);
+
+                // رسم جملة "I love you" متكررة لصنع خط إطار القلب
+                ctx.fillStyle = "hotpink";
+                ctx.font = "bold 9px Arial";
+                ctx.textAlign = "center";
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "hotpink";
+                ctx.fillText("I love you", p.x, p.y);
+
+                currentStep++;
+            }
+
+            requestAnimationFrame(animateHeart);
+        }
+
+        // إعادة رسم القلب بالكامل بشكل ثابت ومستقر
+        function drawFullHeart() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "hotpink";
+            ctx.font = "bold 9px Arial";
+            ctx.textAlign = "center";
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = "hotpink";
+            
+            for (let i = 0; i < currentStep; i++) {
+                let p = getHeartPoint(i);
+                ctx.fillText("I love you", p.x, p.y);
+            }
+        }
+
+        // إظهار الحرف "R" والنص في منتصف القلب بعد انتهاء الرسم
+        function showInsideContent() {
+            // إظهار الحرف R مع تأثير تكبير وتحجيم ناعم
+            letterR.style.opacity = '1';
+            letterR.style.transform = 'scale(1)';
+            
+            // تفعيل حركة النبض اللطيفة على الحرف بعد اكتمال تأثير الدخول
+            setTimeout(() => {
+                letterR.classList.add('pulsing');
+            }, 2500);
+
+            // إظهار نص "I Love You" المكتوب أسفل الحرف بنعومة
+            loveText.style.opacity = '1';
+        }
+
+        // إضافة جزيئات طائرة متلألئة خلف القلب لمظهر احترافي رائع
+        let particles = [];
+        function startFloatingParticles() {
+            setInterval(() => {
+                if (particles.length < 60) {
+                    particles.push({
+                        x: canvas.width / 2 + (Math.random() - 0.5) * 150,
+                        y: canvas.height / 2 + (Math.random() - 0.5) * 150,
+                        size: Math.random() * 3 + 1,
+                        speedX: (Math.random() - 0.5) * 1.5,
+                        speedY: -Math.random() * 1.5 - 0.3,
+                        alpha: 1
+                    });
+                }
+            }, 150);
+            
+            function updateParticles() {
+                // مسح وإعادة رسم القلب ثم تحديث الجزيئات
+                drawFullHeart();
+                
+                for (let i = 0; i < particles.length; i++) {
+                    let p = particles[i];
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    p.alpha -= 0.004; // تلاشي تدريجي
+                    
+                    if (p.alpha <= 0) {
+                        particles.splice(i, 1);
+                        i--;
+                        continue;
+                    }
+                    
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = "#ff4bb4";
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = "#ff2a6d";
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+                requestAnimationFrame(updateParticles);
+            }
+            updateParticles();
+        }
+    </script>
+</body>
+</html>
