@@ -108,9 +108,10 @@
 </head>
 <body>
 
-    <!-- شاشة البداية للتفاعل لتشغيل الصوت دون قيود المتصفح -->
+    <!-- شاشة البداية للتفاعل لطلب إذن تشغيل الصوت مباشرة من المتصفح -->
     <div id="overlay">
-        <button class="start-btn" onclick="startExperience()">اضغطي 💖</button>
+        <!-- زر التفاعل المباشر لفك حظر الصوت والبدء الفوري -->
+        <button class="start-btn" id="start-btn">اضغطي 💖</button>
     </div>
 
     <!-- حرف R في وسط القلب تماماً -->
@@ -120,7 +121,7 @@
     <canvas id="canvas"></canvas>
     
     <!-- تم وضع رابط الصوت المباشر الخاص بك هنا وهو جاهز تماماً -->
-    <audio id="bg-music" crossorigin="anonymous" loop>
+    <audio id="bg-music" crossorigin="anonymous" loop preload="auto">
         <source src="https://www.image2url.com/r2/default/audio/1782416016994-df3a2b99-59b4-4e5c-85ba-47a64fc2e924.mp3" type="audio/mpeg">
         <source src="https://www.image2url.com/r2/default/audio/1782416016994-df3a2b99-59b4-4e5c-85ba-47a64fc2e924.mp3" type="audio/mp3">
     </audio>
@@ -131,6 +132,7 @@
         const audio = document.getElementById('bg-music');
         const overlay = document.getElementById('overlay');
         const letterR = document.getElementById('letter-r');
+        const startBtn = document.getElementById('start-btn');
 
         let animationStarted = false;
         let currentStep = 0;
@@ -148,40 +150,43 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // محاولة تهيئة وتثبيت تشغيل الصوت بشكل قوي يتخطى قيود المتصفحات والأجهزة الذكية
-        function forcePlayAudio() {
-            const playPromise = audio.play();
-            
-            if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    console.log("تم تشغيل الصوت بنجاح!");
-                }).catch(error => {
-                    console.log("المتصفح يقيد التشغيل التلقائي، جاري المحاولة بطريقة بديلة عند أول تفاعل:", error);
-                    
-                    const retryPlay = () => {
-                        audio.play().then(() => {
-                            document.removeEventListener('touchstart', retryPlay);
-                            document.removeEventListener('click', retryPlay);
-                        });
-                    };
-                    document.addEventListener('touchstart', retryPlay);
-                    document.addEventListener('click', retryPlay);
-                });
+        // فك حظر كرت الصوت في النظام بالكامل وتأمين البث الفوري
+        function unlockAudioAndPlay() {
+            // محاولة إنشاء أو استئناف سياق تشغيل الصوت (تجاوزاً لقيود آيفون وأندرويد)
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const audioCtx = new AudioContext();
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
             }
+
+            // تشغيل الصوت المباشر مباشرة في نفس اللحظة التي يلمس فيها المستخدم الزر
+            audio.play().then(() => {
+                console.log("تم تشغيل الأغنية بنجاح وبدون أي قيود!");
+            }).catch(error => {
+                console.log("واجه المتصفح مشكلة، جاري محاولة إعادة التشغيل الاحتياطية:", error);
+                // محاولة تشغيل احتياطية ثانية سريعة
+                audio.muted = false;
+                audio.play();
+            });
         }
 
         // بدء التجربة عند ضغط الزر
-        function startExperience() {
+        startBtn.addEventListener('click', function() {
+            // إخفاء واجهة البداية بنعومة فائقة
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.visibility = 'hidden';
             }, 1500);
 
-            forcePlayAudio();
+            // استدعاء فك حظر وتشغيل الصوت مباشرة بداخل حدث الضغط
+            unlockAudioAndPlay();
 
+            // إطلاق أنيميشن الرسم
             animationStarted = true;
             animateHeart();
-        }
+        });
 
         // حساب نقاط القلب بناءً على معادلات الرسم الرياضية للبايثون
         function getHeartPoint(step) {
@@ -201,7 +206,7 @@
         function animateHeart() {
             if (!animationStarted) return;
 
-            // رسم نقطة واحدة فقط في كل فريم ليكون هادئاً وبطيئاً
+            // رسم نقطة واحدة فقط في كل فريم ليكون هادئاً وبطيئاً جداً ومؤثراً
             if (currentStep >= maxSteps) {
                 showInsideContent();
                 startFloatingParticles(); 
