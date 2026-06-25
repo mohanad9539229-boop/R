@@ -120,8 +120,8 @@
     <!-- لوحة الرسم ثنائية الأبعاد -->
     <canvas id="canvas"></canvas>
     
-    <!-- تم وضع رابط الصوت المباشر الخاص بك هنا وهو جاهز تماماً -->
-    <audio id="bg-music" crossorigin="anonymous" loop preload="auto">
+    <!-- تم إزالة crossorigin لتفادي مشاكل الأمان والصلاحيات تماماً ليشتغل الصوت فوراً -->
+    <audio id="bg-music" loop preload="auto">
         <source src="https://www.image2url.com/r2/default/audio/1782416016994-df3a2b99-59b4-4e5c-85ba-47a64fc2e924.mp3" type="audio/mpeg">
         <source src="https://www.image2url.com/r2/default/audio/1782416016994-df3a2b99-59b4-4e5c-85ba-47a64fc2e924.mp3" type="audio/mp3">
     </audio>
@@ -150,38 +150,23 @@
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // فك حظر كرت الصوت في النظام بالكامل وتأمين البث الفوري
-        function unlockAudioAndPlay() {
-            // محاولة إنشاء أو استئناف سياق تشغيل الصوت (تجاوزاً لقيود آيفون وأندرويد)
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            if (AudioContext) {
-                const audioCtx = new AudioContext();
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-            }
-
-            // تشغيل الصوت المباشر مباشرة في نفس اللحظة التي يلمس فيها المستخدم الزر
+        // بدء التجربة عند ضغط الزر
+        startBtn.addEventListener('click', function() {
+            // تشغيل الصوت مباشرة بداخل حدث الضغط وبدون تأخير لتفادي قيود المتصفحات تماماً
             audio.play().then(() => {
-                console.log("تم تشغيل الأغنية بنجاح وبدون أي قيود!");
+                console.log("تم تشغيل الأغنية بنجاح!");
             }).catch(error => {
-                console.log("واجه المتصفح مشكلة، جاري محاولة إعادة التشغيل الاحتياطية:", error);
-                // محاولة تشغيل احتياطية ثانية سريعة
+                console.log("خطأ في تشغيل الصوت:", error);
+                // محاولة تشغيل احتياطية خالية من الميوت
                 audio.muted = false;
                 audio.play();
             });
-        }
 
-        // بدء التجربة عند ضغط الزر
-        startBtn.addEventListener('click', function() {
             // إخفاء واجهة البداية بنعومة فائقة
             overlay.style.opacity = '0';
             setTimeout(() => {
                 overlay.style.visibility = 'hidden';
             }, 1500);
-
-            // استدعاء فك حظر وتشغيل الصوت مباشرة بداخل حدث الضغط
-            unlockAudioAndPlay();
 
             // إطلاق أنيميشن الرسم
             animationStarted = true;
