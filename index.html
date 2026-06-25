@@ -64,21 +64,6 @@
         .start-btn:active {
             transform: scale(0.95);
         }
-        /* رسالة منبثقة عند وجود مشكلة في تحميل الصوت */
-        #audio-error {
-            position: absolute;
-            bottom: 20px;
-            background: rgba(255, 42, 109, 0.2);
-            border: 1px solid #ff2a6d;
-            color: #ffb3d1;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 13px;
-            display: none;
-            z-index: 12;
-            text-align: center;
-            max-width: 90%;
-        }
         /* تصميم أنيق وفاخر لحرف R في منتصف القلب */
         #letter-r {
             position: absolute;
@@ -126,7 +111,6 @@
     <!-- شاشة البداية للتفاعل لتشغيل الصوت دون قيود المتصفح -->
     <div id="overlay">
         <button class="start-btn" onclick="startExperience()">اضغطي 💖</button>
-        <div id="audio-error">جاري تحميل الصوت... برجاء الانتظار ثوانٍ إذا لم يعمل فوراً.</div>
     </div>
 
     <!-- حرف R في وسط القلب تماماً -->
@@ -135,10 +119,10 @@
     <!-- لوحة الرسم ثنائية الأبعاد -->
     <canvas id="canvas"></canvas>
     
-    <!-- صوت الخلفية من الرابط الخاص بك مجهز للعمل عبر تقنية CORS -->
+    <!-- تم وضع رابط الصوت المباشر الخاص بك هنا وهو جاهز تماماً -->
     <audio id="bg-music" crossorigin="anonymous" loop>
-        <source src="https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvYjQ4MjhiM2EtZDg1Yi00N2M5LWI3OWItZDA0OTEyZTRlMGRkLm1wMw" type="audio/mpeg">
-        <source src="https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvYjQ4MjhiM2EtZDg1Yi00N2M5LWI3OWItZDA0OTEyZTRlMGRkLm1wMw" type="audio/mp3">
+        <source src="https://www.image2url.com/r2/default/audio/1782416016994-df3a2b99-59b4-4e5c-85ba-47a64fc2e924.mp3" type="audio/mpeg">
+        <source src="https://www.image2url.com/r2/default/audio/1782416016994-df3a2b99-59b4-4e5c-85ba-47a64fc2e924.mp3" type="audio/mp3">
     </audio>
 
     <script>
@@ -147,7 +131,6 @@
         const audio = document.getElementById('bg-music');
         const overlay = document.getElementById('overlay');
         const letterR = document.getElementById('letter-r');
-        const errorMsg = document.getElementById('audio-error');
 
         let animationStarted = false;
         let currentStep = 0;
@@ -173,12 +156,10 @@
                 playPromise.then(() => {
                     console.log("تم تشغيل الصوت بنجاح!");
                 }).catch(error => {
-                    console.log("المتصفح يقيد التشغيل التلقائي، جاري المحاولة بطريقة بديلة:", error);
-                    errorMsg.style.display = 'block';
+                    console.log("المتصفح يقيد التشغيل التلقائي، جاري المحاولة بطريقة بديلة عند أول تفاعل:", error);
                     
                     const retryPlay = () => {
                         audio.play().then(() => {
-                            errorMsg.style.display = 'none';
                             document.removeEventListener('touchstart', retryPlay);
                             document.removeEventListener('click', retryPlay);
                         });
@@ -216,11 +197,11 @@
             return { x: cx, y: cy };
         }
 
-        // رسم القلب خطوة بخطوة بسرعة منخفضة ومنتظمة جداً
+        // رسم القلب خطوة بخطوة وبسرعة هادئة ومنتظمة
         function animateHeart() {
             if (!animationStarted) return;
 
-            // نقوم برسم نقطة واحدة فقط في كل إطار لجعل عملية الرسم بطيئة وحالمة
+            // رسم نقطة واحدة فقط في كل فريم ليكون هادئاً وبطيئاً
             if (currentStep >= maxSteps) {
                 showInsideContent();
                 startFloatingParticles(); 
@@ -268,7 +249,7 @@
             }, 3000);
         }
 
-        // إضافة جزيئات دقيقة متلألئة وعائمة خلف القلب
+        // إضافة جزيئات دقيقة متلألئة وعائمة خلف القلب لمزيد من الجمالية
         let particles = [];
         function startFloatingParticles() {
             setInterval(() => {
